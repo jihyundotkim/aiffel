@@ -98,7 +98,10 @@ image_dir_path = os.getenv("HOME") + "/AIFFEL/2021-09-23/test"
 (x_test, y_test)=load_data(image_dir_path)
 x_test_norm = x_test/255.0   # 입력은 0~1 사이로 정규화
 
-model.evaluate(x_test_norm, y_test, batch_size=10)
+model.evaluate(x_test_norm, y_test)
 
 predicted_result = model.predict(x_test_norm)  # model이 추론한 확률. 
 predicted_labels = np.argmax(predicted_result, axis=1)
+
+for i in range(300):
+    print (i, "컴퓨터의 예상: ", predicted_labels[i], "정답: ", y_test[i])
