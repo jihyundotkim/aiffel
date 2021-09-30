@@ -34,11 +34,10 @@ re - 파일명 처리 정규표현식 때문에 (없어도 무방함)
 
 ```python
 def add_whiskers(img_path, sticker_path, detector_hog, landmark_predictor):
-    img_bgr = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)    #- OpenCV로 이미지를 읽어서
-    img_bgr = cv2.resize(img_bgr, (640, 360))    # 640x360의 크기로 Resize
+    img_bgr = cv2.imread(img_path)
+    img_bgr = cv2.resize(img_bgr, (640, 360))
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    img_show= cv2.cvtColor(img_bgr, cv2.COLOR_BGRA2RGBA) #- 출력용 이미지 별도 보관
-    dlib_rect = detector_hog(img_rgb, 1)[0]   #- (image, num of img pyramid)
+    dlib_rect = detector_hog(img_rgb, 1)[0]
     list_landmarks = []
     points = landmark_predictor(img_rgb, dlib_rect)
     list_points = list(map(lambda p: (p.x, p.y), points.parts()))
@@ -47,16 +46,57 @@ def add_whiskers(img_path, sticker_path, detector_hog, landmark_predictor):
     y = list_landmarks[0][30][1] + dlib_rect.height() // 20
     w = dlib_rect.width()
     h = dlib_rect.height()
-    img_sticker = cv2.imread(sticker_path, cv2.IMREAD_UNCHANGED)
-    sticker_rgb = cv2.cvtColor(img_sticker, cv2.COLOR_BGRA2RGBA)
+    img_sticker = cv2.imread(sticker_path)
+    img_sticker = cv2.cvtColor(img_sticker, cv2.COLOR_BGR2RGB)
     img_sticker = cv2.resize(img_sticker, (w,h), fx=0.5, fy=0.5, interpolation = cv2.INTER_AREA)
     refined_x = x - w // 2
     refined_y = y - h // 2
-    sticker_area = img_show[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]]
-    img_show[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]] = np.where(img_sticker>=[100,100,100,0], sticker_area, cv2.addWeighted(img_sticker, 0.4, sticker_area, 0.6, 0))
-    plt.imshow(img_show)
-    cv2.imwrite(os.getenv('HOME')+'/AIFFEL/2021-09-30/images/Results/'+re.search(r'photo[0-9]\.jpg',image_path).group(), cv2.cvtColor(img_show, cv2.COLOR_RGB2BGR))
+    sticker_area = img_rgb[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]]
+    img_rgb[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]] = np.where(img_sticker>=[100,100,100], sticker_area, cv2.addWeighted(img_sticker, 0.5, sticker_area, 0.5, 0))
+    plt.imshow(img_rgb)
+    cv2.imwrite(os.getenv('HOME')+'/AIFFEL/2021-09-30/images/Results/'+re.search(r'photo[0-9]\.jpg',image_path).group(), cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR))
 ```
+### 얼굴 이미지 불러와서 크기와 컬러스페이스 조정하기
+```python
+img_bgr = cv2.imread(img_path)
+img_bgr = cv2.resize(img_bgr, (640, 360))
+img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+```
+
+### 얼굴 영역과 영역 내 이목구비(landmarks) 인식하기
+```python
+dlib_rect = detector_hog(img_rgb, 1)[0]
+list_landmarks = []
+points = landmark_predictor(img_rgb, dlib_rect)
+list_points = list(map(lambda p: (p.x, p.y), points.parts()))
+list_landmarks.append(list_points)
+```
+### 스티커 위치 지정하기
+```python
+x = list_landmarks[0][30][0]
+y = list_landmarks[0][30][1] + dlib_rect.height() // 20
+w = dlib_rect.width()
+h = dlib_rect.height()
+refined_x = x - w // 2
+refined_y = y - h // 2
+```
+우선 코의 위치인 30번 랜드마크를 기준으로 `x`와 `y`를 정합니다. `y`의 경우 랜드마크 위치보다 살짝 아래로 내리는 게 더 코 위치에 맞는 것 같아 직사각형 높이의 1/20만큼 내려주었습니다. 그 다음 얼굴 크기에 맞게 너비와 높이를 정해줍니다. `refined_x`와 `refined_y`를 높이/너비의 반을 뺀 값으로 정의하는 이유는 랜드마크 위치가 실제로 스티커가 들어갈 자리의 중앙이며 이를 왼쪽 위로 맞춰주기 위함입니다.
+
+### 스티커 이미지 불러와서 사이즈와 컬러 스페이스 조정하기
+```python
+img_sticker = cv2.imread(sticker_path)
+img_sticker = cv2.cvtColor(img_sticker, cv2.COLOR_BGR2RGB)
+img_sticker = cv2.resize(img_sticker, (w,h), fx=0.5, fy=0.5, interpolation = cv2.INTER_AREA)
+```
+`fx=0.5, fy=0.5, interpolation = cv2.INTER_AREA` 부분은 이미지를 줄일 때 화질 손실을 줄이기 위해서 추가해주었습니다. 사진을 줄일 때는 `INTER_AREA`가 낫고 사진 크기를 키울 때는 `INTER_LINEAR`가 더 좋다고 합니다.
+
+### 스티커 영역을 정의해 스티커 붙이기
+```python
+sticker_area = img_rgb[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]]
+img_rgb[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]] = np.where(img_sticker>=[100,100,100], sticker_area, cv2.addWeighted(img_sticker, 0.5, sticker_area, 0.5, 0))
+```
+스티커가 들어갈 자리의 위쪽 가장자리(`refined_y`)부터 아래쪽 가장자리(`refined_y+img_sticker.shape[0]`)까지, 그리고 왼쪽 가장자리(`refined_x`)부터 오른쪽 가장자리(`refined_x+img_sticker.shape[1]`)까지 스티커 영역을 지정해주고, 스티커 영역 내에서 `img_sticker`의 
+
 
 ## 얼굴 인식기 인스턴스 및 각종 변수 선언
 
