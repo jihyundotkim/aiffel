@@ -36,18 +36,16 @@ import re
 ##  add_sticker 함수 구현하기
 
 ```python
-ddef add_sticker(img_path, sticker_path, detector_hog, landmark_predictor, results_path):
+def add_sticker(img_path, sticker_path, detector_hog, landmark_predictor, results_path):
     img_bgr = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
     img_bgr = cv2.resize(img_bgr, (640, 360))
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
     img_rgba = cv2.cvtColor(img_bgr, cv2.COLOR_BGRA2RGBA)
     dlib_rect = detector_hog(img_rgb, 1)[0]
-    list_landmarks = []
     points = landmark_predictor(img_rgb, dlib_rect)
     list_points = list(map(lambda p: (p.x, p.y), points.parts()))
-    list_landmarks.append(list_points)
-    x = list_landmarks[0][30][0]
-    y = list_landmarks[0][30][1] + dlib_rect.height() // 20
+    x = list_points[30][0]
+    y = list_points[30][1] + dlib_rect.height() // 20
     w = dlib_rect.width()
     h = dlib_rect.height()
     refined_x = x - w // 2
@@ -63,7 +61,7 @@ ddef add_sticker(img_path, sticker_path, detector_hog, landmark_predictor, resul
                 pixel[3] = 0
     img_rgba[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_sticker.shape[1]] = np.where(img_sticker==[255,255,255,0], sticker_area, cv2.addWeighted(img_sticker, 0.5, sticker_area, 0.5, 0))
     plt.imshow(img_rgba)
-    cv2.imwrite(results_path + re.search(r'photo[0-9]\.png',image_path).group(), cv2.cvtColor(img_rgba, cv2.COLOR_RGBA2BGRA))
+    cv2.imwrite(results_path + re.search(r'photo[0-9]\.',image_path).group()+'jpg', cv2.cvtColor(img_rgba, cv2.COLOR_RGBA2BGRA))
 ```
 ### 얼굴 이미지 불러와서 크기와 컬러스페이스 조정하기
 ```python
@@ -78,15 +76,13 @@ img_rgba = cv2.cvtColor(img_bgr, cv2.COLOR_BGRA2RGBA)
 ### 얼굴 영역과 영역 내 이목구비(landmarks) 인식하기
 ```python
 dlib_rect = detector_hog(img_rgb, 1)[0]
-list_landmarks = []
 points = landmark_predictor(img_rgb, dlib_rect)
 list_points = list(map(lambda p: (p.x, p.y), points.parts()))
-list_landmarks.append(list_points)
 ```
 ### 스티커 위치 지정하기
 ```python
-x = list_landmarks[0][30][0]
-y = list_landmarks[0][30][1] + dlib_rect.height() // 20
+x = list_points[30][0]
+y = list_points[30][1] + dlib_rect.height() // 20
 w = dlib_rect.width()
 h = dlib_rect.height()
 refined_x = x - w // 2
