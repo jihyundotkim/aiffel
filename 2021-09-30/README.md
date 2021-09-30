@@ -1,6 +1,6 @@
 # 사진에 스티커 붙여보기
 
-![고양이 수염이 없는 사진](./images/Webcam/photo3.jpg)
+![고양이 수염이 없는 사진](./images/Webcam/photo3.png)
 
 이런 일반 얼굴 사진에
 
