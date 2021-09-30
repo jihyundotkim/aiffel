@@ -22,6 +22,7 @@ import re
 ```
 
 cv2 - 이미지 처리
+
 matplotlib - 진행하면서 이미지를 볼 수 있기 위해
 
 numpy - 이미지를 numpy array 형태로 사용하기 위해
