@@ -155,3 +155,16 @@ for i in range(1, num_of_images+1):
 ![얼굴인식이 잘못된 사진](./images/Results/error.png)
 
 얼굴을 한 쪽으로 좀 많이 돌렸더니 잘못된 영역이 인식되는 것을 볼 수 있습니다. [OpenCV 정보 사이트](https://learnopencv.com/face-detection-opencv-dlib-and-deep-learning-c-python/)에 따르면 `dlib`의 `get_frontal_face_detector()` 자체가 frontal이 아닌, 많이 틀어져 있는 얼굴은 인식을 하지 못한다고 합니다. 얼굴의 각도가 달라져도 인식이 잘 되는 라이브러리로는 OpenCV의 DNN Face Detector가 있다고 합니다. 나중에 DNN Face Detector와 OpenCV의 사용법을 더 익혀서 다시 적용해 봐야겠습니다.
+
+
+# 회고
+
+**어려웠던 점**: 투명한 배경인 스티커를 add하면 투명한 상태로 합쳐질 것 같은데 그렇지 않아서 투명한 픽셀들을 직접 제거해야 하는 부분이 어려웠습니다.  `np.where()`는 함수 자체가 알파값 index에만 operand를 쓰기 어려워 결국 `for` 루프를 통해 구현해야 했습니다.
+
+**알아낸 것**: 이미지도 OpenCV 객체에서는 RGBA 값의 행렬이기 때문에 행렬 슬라이싱으로 영역을 지정하고 다른 값을 대입할 수 있다는 것을 알게 되었습니다.
+
+**아직 모호한 점**: `dlib.shape_predictor()`가 어떻게 작동하는지 추상화된 부분이 있어 좀 더 알아보고 싶습니다.
+
+**평가 지표를 맞추기 위해 시도한 것들**: 스티커 위치를 가장 귀여운 곳에 맞추기 위해 다양한 값을 시도해 보았습니다.
+
+**다짐**: 노드에서 배운 `get_frontal_face_detector()`에는 한계가 있는 것 같아 DNN Face Detector등 다양한 라이브러리를 공부해 봐야겠다고 다짐했습니다.
