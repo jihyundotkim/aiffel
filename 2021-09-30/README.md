@@ -111,7 +111,7 @@ img_rgba[refined_y:refined_y+img_sticker.shape[0], refined_x:refined_x+img_stick
 `sticker_added`를 스티커와 원래 이미지를 반반 섞은 `cv2.addWeighted(img_sticker, 0.5, sticker_area, 0.5, 0)`로 선언해주는 이유는 자연스럽게 블렌딩을 하기 위해서인데요, 블렌딩을 하지 않고 스티커가 튀게 하려면 `sticker_added = cv2.addWeighted(img_sticker, 0.5, sticker_area, 0.5, 0)` 라인을 삭제하고 `sticker_added[i][j]`를 `img_sticker[i][j]`로 대체하시면 됩니다. 마지막으로 `img_rgba`의 스티커가 들어가야 할 영역에 스티커가 더해진 `sticker_area`를 넣어줍니다.
 
 
-## 얼굴 인식기 인스턴스 및 각종 변수 선언, 실제 함수 실
+## 얼굴 인식기 인스턴스 및 각종 변수 선언, 실제 함수 실행
 
 ```python
 num_of_images = 8
